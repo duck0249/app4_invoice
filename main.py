@@ -9,7 +9,6 @@ filepaths = glob.glob("invoices/*.xlsx")
 
 # Iterate over each Excel file
 for filepath in filepaths:
-    df = pd.read_excel(filepath, sheet_name="Sheet 1", engine="openpyxl")
     
     # Create PDF instance
     pdf = FPDF(orientation="P", unit="mm", format="A4")
@@ -25,20 +24,46 @@ for filepath in filepaths:
     pdf.cell(w=50, h=8, txt=f"Date {date}",ln=1)
     pdf.ln()
 
-    # Create table and set up.
-    pdf.set_font(family="Times", size=12)
-    col_widths = [30, 50, 40, 40, 30]
+    df = pd.read_excel(filepath, sheet_name="Sheet 1", engine="openpyxl")
 
-    for col in df.columns:
-    	pdf.cell(col_widths[df.columns.get_loc(col)],10, col.replace("_", " ").title(), 1, 0, "L")
-    pdf.ln()
+    columns = [column.replace("_", " ").title() for column in df.columns]
+    
+    pdf.set_font(family="Times", size=10, style="B")
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(w=30, h=8, txt=columns[0], border=1)
+    pdf.cell(w=65, h=8, txt=columns[1], border=1)
+    pdf.cell(w=35, h=8, txt=columns[2], border=1)
+    pdf.cell(w=30, h=8, txt=columns[3], border=1)
+    pdf.cell(w=30, h=8, txt=columns[4], border=1, ln=1)
 
     for index, row in df.iterrows():
-    	for i, item in enumerate(row):
-    		pdf.cell(col_widths[i], 10, str(item).replace("_"," ").title(), 1, 0, "L")
-    	pdf.ln()
+    	pdf.set_font(family="Times", size=10)
+    	pdf.set_text_color(80, 80, 80)
+    	pdf.cell(w=30, h=8, txt=str(row["product_id"]), border=1)
+    	pdf.cell(w=65, h=8, txt=str(row["product_name"]), border=1)
+    	pdf.cell(w=35, h=8, txt=str(row["amount_purchased"]), border=1)
+    	pdf.cell(w=30, h=8, txt=str(row["price_per_unit"]), border=1)
+    	pdf.cell(w=30, h=8, txt=str(row["total_price"]), border=1, ln=1)
 
+    total_sum = df["total_price"].sum()
 
+    pdf.set_font(family="Times", size=10)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(w=30, h=8, txt="", border=1)
+    pdf.cell(w=65, h=8, txt="", border=1)
+    pdf.cell(w=35, h=8, txt="", border=1)
+    pdf.cell(w=30, h=8, txt="", border=1)
+    pdf.cell(w=30, h=8, txt=str(total_sum), border=1, ln=1)
+    pdf.ln()
 
-    # Output the PDF to the specified directory
+    # Add total sum
+    pdf.set_font(family="Times", size=18, style="B")
+    pdf.cell(w=30, h=8, txt=f"The total price is {total_sum} Euros.", ln=1)
+    
+    # Add company name and logo
+    pdf.set_font(family="Times", size=14, style="B")
+    pdf.cell(w=25, h=8, txt=f"Pythonhow")
+    pdf.image("pythonhow.png", w=10)
+
+	# Output the PDF to the specified directory
     pdf.output(f"PDFs/{filename}.pdf")
